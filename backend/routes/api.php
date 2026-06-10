@@ -17,3 +17,8 @@ use App\Domain\Course\Controllers\CourseController;
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/courses', [CourseController::class, 'store']);
 });
+<?php
+
+use App\Presentation\User\Controllers\AuthController;
+
+Route::post('/v2/register', [AuthController::class, 'register']);
