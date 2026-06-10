@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  # -----------------------------------------------------
+  # 1. PostgreSQL - Primary Database
+  # -----------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: lms_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-lms_db}
+      POSTGRES_USER: ${DB_USERNAME:-lms_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secretpassword}
+    volumes:
+      - lms_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lms_user -d lms_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lms_network
+
+  # -----------------------------------------------------
+  # 2. Redis - Cache & Queue Driver
+  # -----------------------------------------------------
+  redis:
+    image: redis:alpine
+    container_name: lms_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - lms_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lms_network
+
+  # -----------------------------------------------------
+  # 3. MinIO - S3 Compatible Object Storage (Videos, Docs)
+  # -----------------------------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: lms_minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - lms_minio_data:/data
+    networks:
+      - lms_network
+
+  # -----------------------------------------------------
+  # 4. Meilisearch - Search Engine
+  # -----------------------------------------------------
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    container_name: lms_meilisearch
+    restart: unless-stopped
+    ports:
+      - "7700:7700"
+    environment:
+      MEILI_MASTER_KEY: ${MEILISEARCH_KEY:-masterKey}
+      MEILI_ENV: development
+    volumes:
+      - lms_meili_data:/meili_data
+    networks:
+      - lms_network
+
+  # -----------------------------------------------------
+  # 5. ClickHouse - Analytics Engine
+  # -----------------------------------------------------
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: lms_clickhouse
+    restart: unless-stopped
+    ports:
+      - "8123:8123" # HTTP port
+      - "9000:9000" # Native client port
+    environment:
+      CLICKHOUSE_DB: lms_analytics
+      CLICKHOUSE_USER: lms_user
+      CLICKHOUSE_PASSWORD: secretpassword
+    volumes:
+      - lms_clickhouse_data:/var/lib/clickhouse
+    networks:
+      - lms_network
+
+  # -----------------------------------------------------
+  # 6. NATS - Message Broker (Microservices/Event-Driven)
+  # -----------------------------------------------------
+  nats:
+    image: nats:latest
+    container_name: lms_nats
+    restart: unless-stopped
+    ports:
+      - "4222:4222" # Client port
+      - "8222:8222" # HTTP management port
+    command: -m 8222
+    networks:
+      - lms_network
+
+volumes:
+  lms_postgres_data:
+    driver: local
+  lms_redis_data:
+    driver: local
+  lms_minio_data:
+    driver: local
+  lms_meili_data:
+    driver: local
+  lms_clickhouse_data:
+    driver: local
+
+networks:
+  lms_network:
+    driver: bridge
