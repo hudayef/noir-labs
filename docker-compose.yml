@@ -1,0 +1,154 @@
+version: '3.8'
+
+services:
+  lms_backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lms_backend
+    restart: unless-stopped
+    ports:
+      - "8000:9000"
+    networks:
+      - lms_network
+    depends_on:
+      - postgres
+      - redis
+
+  lms_frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lms_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - lms_network
+    depends_on:
+      - lms_backend
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: lms_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-lms_db}
+      POSTGRES_USER: ${DB_USERNAME:-lms_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secretpassword}
+    volumes:
+      - lms_postgres_data:/var/lib/postgresql/data
+    networks:
+      - lms_network
+
+  redis:
+    image: redis:alpine
+    container_name: lms_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - lms_redis_data:/data
+    networks:
+      - lms_network
+
+  minio:
+    image: minio/minio:latest
+    container_name: lms_minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY:-minioadmin}
+    command: server /data --console-address ":9001"
+    volumes:
+      - lms_minio_data:/data
+    networks:
+      - lms_network
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    container_name: lms_meilisearch
+    restart: unless-stopped
+    ports:
+      - "7700:7700"
+    environment:
+      MEILI_MASTER_KEY: ${MEILISEARCH_KEY:-masterKey}
+      MEILI_ENV: development
+    volumes:
+      - lms_meili_data:/meili_data
+    networks:
+      - lms_network
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: lms_clickhouse
+    restart: unless-stopped
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - lms_clickhouse_data:/var/lib/clickhouse
+    networks:
+      - lms_network
+
+  nats:
+    image: nats:latest
+    container_name: lms_nats
+    restart: unless-stopped
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: -m 8222
+    networks:
+      - lms_network
+
+  # --- OBSERVABILITY STACK ---
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: lms_prometheus
+    volumes:
+      - ./infra/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - lms_network
+
+  loki:
+    image: grafana/loki:latest
+    container_name: lms_loki
+    volumes:
+      - ./infra/monitoring/loki/loki.yml:/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - lms_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: lms_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+      - loki
+    networks:
+      - lms_network
+
+volumes:
+  lms_postgres_data:
+  lms_redis_data:
+  lms_minio_data:
+  lms_meili_data:
+  lms_clickhouse_data:
+
+networks:
+  lms_network:
+    driver: bridge
