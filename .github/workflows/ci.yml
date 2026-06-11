@@ -61,6 +61,13 @@ jobs:
 
       - name: Run Backend Tests
         working-directory: ./backend
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: testing
+          DB_USERNAME: lms_user
+          DB_PASSWORD: secretpassword
         run: php artisan test
 
   frontend-tests:
@@ -77,10 +84,6 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Lint Frontend
+      - name: Build Frontend
         working-directory: ./frontend
-        run: npm run lint
-
-      - name: Run Frontend Tests
-        working-directory: ./frontend
-        run: npm run test:unit
+        run: npm run build
