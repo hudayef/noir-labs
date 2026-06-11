@@ -1,4 +1,4 @@
-# Enterprise LMS Platform
+# Mini Enterprise LMS Platform
 
 Selamat datang di repositori utama **Enterprise LMS Platform**. Sistem ini adalah platform *Learning Management System* skala *enterprise* (mirip Udemy/Coursera) yang dirancang agar *Production Ready*, *Highly Scalable*, dan sangat *Maintainable*.
 
