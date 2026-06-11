@@ -1,82 +1,33 @@
 # Enterprise LMS Platform
 
-Platform e-learning (LMS) berskala enterprise yang dirancang menggunakan pendekatan **Clean Architecture** & **Domain-Driven Design (DDD)**.
-Proyek ini dibangun untuk memenuhi kebutuhan standar industri yang *Production Ready, Maintainable, dan Scalable*.
+Selamat datang di repositori utama **Enterprise LMS Platform**. Sistem ini adalah platform *Learning Management System* skala *enterprise* (mirip Udemy/Coursera) yang dirancang agar *Production Ready*, *Highly Scalable*, dan sangat *Maintainable*.
 
-## Technology Stack
+## Deskripsi Singkat
 
-### Frontend (User Interface)
-- **Vue 3** & **TypeScript**
-- **Pinia** (State Management)
-- **Vue Router**
-- **Tailwind CSS** (Styling)
-- **Shadcn Vue** (UI Components)
+Sistem ini menggunakan arsitektur **Clean Architecture (Modular Monolith)** pada Backend, dan pendekatan **Component-Driven** di Frontend. Seluruh infrastruktur disatukan menggunakan *Docker* untuk konsistensi lingkungan pengembangan hingga produksi.
 
-### Backend (API & Core Logic)
-- **Laravel 12** & **PHP 8.4+**
-- **Sanctum** (Authentication)
-- PostgreSQL (Primary Database)
-
-### Infrastructure & Services (Docker Compose)
-- **Redis** (Caching & Queue)
-- **MinIO** (S3-Compatible Object Storage for Videos/Files)
-- **Meilisearch** (Instant Search Engine)
-- **ClickHouse** (High-Performance Analytics DB)
-- **NATS** (Message Broker / Event-Driven Architecture)
-- Grafana, Prometheus, Loki (Monitoring)
+### Tech Stack Utama:
+- **Frontend:** Vue 3, TypeScript, Pinia, Tailwind CSS, Shadcn Vue.
+- **Backend:** Laravel 12 (PHP 8.4+), Sanctum (API Auth).
+- **Database:** PostgreSQL (Primary), Redis (Cache/Queue), ClickHouse (Analytics OLAP).
+- **Messaging & Search:** NATS (Message Broker), Meilisearch (Search Engine).
+- **Storage:** MinIO (S3 Compatible Object Storage).
+- **DevOps & Observability:** Docker, GitHub Actions, Prometheus, Loki, Grafana.
 
 ---
 
-## Panduan Memulai untuk Developer Pemula
+## Daftar Panduan Dokumentasi (Documentation Hub)
 
-Proyek ini menggunakan **Docker Compose** agar semua *dependencies* (database, cache, search engine) dapat berjalan dengan mudah di mesin lokal Anda.
+Agar *Onboarding* Anda sebagai *developer* baru berjalan mulus tanpa hambatan, harap baca panduan teknis berikut secara berurutan:
 
-### 1. Kebutuhan Sistem (Prerequisites)
-Pastikan Anda telah menginstal:
-- Docker & Docker Compose
-- PHP 8.4 (Jika ingin menjalankan *artisan* lokal)
-- Composer
-- Node.js (versi 20+) & npm
-
-### 2. Setup Infrastruktur (Layanan Database, dll)
-Masuk ke root direktori proyek, lalu jalankan:
-```bash
-docker compose up -d
-```
-Perintah ini akan menjalankan PostgreSQL, Redis, MinIO, Meilisearch, ClickHouse, dan NATS di latar belakang.
-
-### 3. Setup Backend (Laravel)
-```bash
-cd backend
-cp .env.example .env
-# Sesuaikan .env untuk DB_PORT=5432 (PostgreSQL) dll.
-composer install
-php artisan key:generate
-php artisan migrate
-php artisan serve
-```
-
-### 4. Setup Frontend (Vue 3)
-```bash
-cd frontend
-npm install
-npm run dev
-```
+1. 🚀 **[Installation Guide](docs/guides/Installation_Guide.md)** - Panduan lengkap dari *clone* repositori hingga aplikasi menyala di mesin lokal Anda.
+2. 🏛️ **[Architecture Guide](docs/guides/Architecture_Guide.md)** - Pahami *Clean Architecture*, *Domain Driven Design (DDD)*, dan arsitektur data (*ClickHouse & NATS*).
+3. 🔌 **[API Documentation](docs/guides/API_Documentation.md)** - Standar kontrak API, autentikasi (Bearer Token), dan cara integrasi frontend-backend.
+4. 🔒 **[Security Guide](docs/guides/Security_Guide.md)** - Penjelasan tentang *Rate Limiting*, JWT/Sanctum Security, Hashing, dan RBAC (Role-Based Access Control).
+5. 🚢 **[Deployment Guide](docs/guides/Deployment_Guide.md)** - Langkah-langkah untuk membawa aplikasi ini ke lingkungan *Production* (AWS/GCP, K8s).
+6. 🚑 **[Troubleshooting Guide](docs/guides/Troubleshooting_Guide.md)** - Daftar error umum yang sering terjadi saat *setup* Docker atau Composer dan cara mengatasinya.
+7. 🤝 **[Contributor Guide](docs/guides/Contributor_Guide.md)** - Standar penulisan kode (*Clean Code*), aturan *Git Branching*, dan standar pembuatan *Pull Request*.
 
 ---
 
-## Arsitektur & Aturan Pengembangan (Development Rules)
-
-Proyek ini tidak menggunakan struktur MVC standar Laravel, melainkan **Modular Monolith (DDD)**.
-
-1. **Domain Logic:** Folder `app/Domain/` berisi semua modul seperti `Auth`, `Course`, `Enrollment`.
-2. **Controllers:** Jangan simpan di `app/Http/Controllers`, letakkan di `app/Domain/[NamaDomain]/Controllers`.
-3. **Komunikasi Antar Modul:** Gunakan interface (API Internal) atau sistem antrean (Laravel Queue / NATS) agar modul tidak saling bergantung erat (loose coupling).
-
-### Dokumentasi Lainnya
-Silakan periksa direktori `docs/` untuk membaca:
-- Product Requirement (BRD/SRS)
-- Architecture Diagram (C4 Model & ERD)
-
----
-*Dibangun oleh Tim Software House Enterprise (CTO, Architect, Vue Dev, Laravel Dev).*
+*Dikembangkan untuk memberikan pendidikan berkualitas dengan standar teknologi tertinggi.*
